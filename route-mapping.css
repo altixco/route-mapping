@@ -1,0 +1,69 @@
+@media (max-width: 600px) {
+  #route-mapping > #map {
+    height: 400px;
+  }
+}
+
+@media (min-width: 601px) {
+  #route-mapping {
+    height: 100%;
+  }
+
+  #route-mapping-control {
+    height: 100%;
+    min-width: calc(300px);
+  }
+
+  #route-mapping > #map {
+    height: 100%;
+    max-width: calc(100% - 300px);
+  }
+}
+
+#route-mapping .route-points {
+  margin-bottom: 10px;
+}
+
+#route-mapping .input-field {
+  margin-top: 0px;
+}
+
+#route-mapping .input-field input[type=text] {
+  border-bottom: 1px solid white;
+  color: white;
+  margin-bottom: 0px;
+}
+
+#route-mapping .input-field input[type=text]:focus {
+  border-bottom: 1px solid white;
+  box-shadow: 0 1px 0 0 white;
+}
+
+#route-mapping input.icon-prefix {
+  width: 86%;
+  width: calc(100% - 2.5rem);
+  margin-left: 2.5rem;
+}
+
+#route-mapping i.prefix {
+  width: 2.5rem;
+  margin-top: 8px;
+}
+
+#route-mapping-control > .col.s12 {
+  padding: 0 1.5rem;
+}
+
+.route-mapping-head {
+  padding: 10px;
+  margin: 0 !important;
+}
+
+.route-mapping-head > h5 {
+  margin: 0 !important;
+}
+
+.route-mapping-head i {
+  margin-right: 7px;
+  vertical-align: top;
+}

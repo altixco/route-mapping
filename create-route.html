@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Route Mapping | Openbus</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <!-- Solo para presentación  -->
+  <style>
+  body {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 40px;
+  }
+  </style>
+
+  <link rel="stylesheet" href="route-mapping.css">
+</head>
+<body class="grey lighten-5">
+  <div id="route-mapping" class="row card"> 
+    <div id="route-mapping-control" class="col s12 m4 l3 deep-purple darken-2 no-padding white-text">
+      <div class="route-mapping-head card deep-purple darken-4">
+        <h5><i class="material-icons white-text">map</i>Trazado de Ruta</h5>
+      </div>
+      <div class="route-info col s12">
+        <p>Distancia total: <span id="route-mapping-total">0 km</span></p>
+      </div>
+      <div class="route-points col s12">
+        <div class="input-field">
+          <i class="material-icons prefix white-text">radio_button_checked</i>
+          <input id="route-mapping-origin" class="icon-prefix" placeholder="Origen" type="text" onchange="originChange()" onClick="this.select()">
+        </div>
+        <div id="route-mapping-stops"></div>
+        <div class="input-field">
+          <i class="material-icons prefix white-text">place</i>
+          <input id="route-mapping-destination" class="icon-prefix" placeholder="Destino" type="text" onchange="destinationChange()" onClick="this.select()">
+        </div>
+      </div>
+      <div class="route-mapping-buttons col s12">
+        <a class="waves-effect waves-light btn" onclick="mapTraceRoute()"><i class="material-icons left"></i>Agregar Parada</a>
+      </div>
+    </div>
+    <div id="map" class="col s12 m8 l9"></div>
+  </div>
+  
+  <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+  <!-- Google Maps API -->
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAiv_Fbe-yd0qA7TOJrD37JdBJ3BvPOEqE&libraries=places&callback=initMap">
+  </script>
+  <script src="route-mapping.js"></script>
+</body>
+</html>
