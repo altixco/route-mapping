@@ -31,19 +31,22 @@
       <div class="route-points col s12">
         <div class="input-field">
           <i class="material-icons prefix white-text">radio_button_checked</i>
-          <input id="route-mapping-origin" class="icon-prefix" placeholder="Origen" type="text" onchange="originChange()" onClick="this.select()">
+          <input id="route-mapping-origin" class="icon-prefix" placeholder="Origen" type="text" onkeyup="originChange()" onClick="this.select(); originChange();">
         </div>
         <div id="route-mapping-stops"></div>
         <div class="input-field">
           <i class="material-icons prefix white-text">place</i>
-          <input id="route-mapping-destination" class="icon-prefix" placeholder="Destino" type="text" onchange="destinationChange()" onClick="this.select()">
+          <input id="route-mapping-destination" class="icon-prefix" placeholder="Destino" type="text" onkeyup="destinationChange()" onClick="this.select(); destinationChange();">
         </div>
       </div>
       <div class="route-mapping-buttons col s12">
-        <a class="waves-effect waves-light btn" onclick="mapTraceRoute()"><i class="material-icons left"></i>Agregar Parada</a>
+        <a class="waves-effect waves-light btn" onclick="addStop()"><i class="material-icons left">add_location</i>Agregar Parada</a>
       </div>
     </div>
-    <div id="map" class="col s12 m8 l9"></div>
+    <div id="map-container" class="col s12 m8 l9 no-padding">
+      <span id="map-help">Haz clic en un punto del mapa para agregar el origen</span>
+      <div id="map"></div>
+    </div>
   </div>
   
   <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>

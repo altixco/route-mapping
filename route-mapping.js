@@ -12,6 +12,7 @@ var routeStopsNames = {
   stops: [],
 };
 
+var helpText;
 var originInput;
 var destinationInput;
 var currentInput = null;
@@ -26,6 +27,7 @@ function initMap() {
 
   originInput = document.getElementById("route-mapping-origin");
   destinationInput = document.getElementById("route-mapping-destination");
+  helpText = document.getElementById("map-help");
 
   directionsService = new google.maps.DirectionsService;
   directionsDisplay = new google.maps.DirectionsRenderer({
@@ -46,66 +48,143 @@ function initMap() {
   });
 }
 
-var markerInitial;
+var marker;
+var markers = [];
 function pointClicked(e, map) {
   let pointValue = e.placeId ? {placeId: e.placeId} : e.latLng;
+  marker = new google.maps.Marker({
+    position: e.latLng,
+    map: map
+  });
+  markers.push(marker);
+  // map.panTo(e.latLng);
   if (currentInput !== null) {
     if (currentInput === "origin") {
+      if (origin === null) {
+        updateStopAddress(e, "origin");
+      }
       origin = pointValue;
     }
     else if (currentInput === "destination") {
+      if (destination === null) {
+        updateStopAddress(e, "destination");
+      }
       destination = pointValue;
+    }
+    else {
+      let stops = 0;
+      let isNew = true;
+      for (let i = 0; i < waypoints.length; i++) {
+        if (waypoints[i].stopover) {
+          if (stops === currentInput) {
+            waypoints[i].location = pointValue;
+            isNew = false;
+            break;
+          }
+          stops++;
+        }
+      }
+      if (isNew) {
+        waypoints.push({location: pointValue, stopover: true});
+      }
+      updateStopAddress(e, currentInput);
     }
     currentInput = null;
   }
   else if (origin === null) {
     origin = pointValue;
-    markerInitial = new google.maps.Marker({
-      position: e.latLng,
-      label: "Origen",
-      map: map
-    });
-    map.panTo(e.latLng);
-    updateOriginAddress(e);
-    return;
+    updateStopAddress(e, "origin");
   }
   else if (destination === null) {
-    markerInitial.setMap(null);
     destination = pointValue;
     //updateStopAddress(e, routeStopsNames.destination);
   }
   else {
-    markerInitial = null;
     waypoints.push({location: destination, stopover: false});
     destination = pointValue;
     //updateStopAddress(e, routeStopsNames.destination);
   }
-  displayRoute(origin, destination, waypoints);
+  helpText.innerHTML = "Haz clic en el mapa para agregar un punto a la ruta";
+  if (origin !== null && destination !== null) {
+    for (var i = 0; i < markers.length; i++) {
+      markers[i].setMap(null);
+    }
+    displayRoute(origin, destination, waypoints);
+  }
 }
 
 function originChange() {
   if (originInput.value === "" || originInput.value === undefined) {
     currentInput = "origin";
+    helpText.innerHTML = "Haz clic en un punto en el mapa para cambiar el origen";
   }
 }
 
 function destinationChange() {
   if (destinationInput.value === "" || destinationInput.value === undefined) {
     currentInput = "destination";
+    helpText.innerHTML = "Haz clic en un punto en el mapa para cambiar el destino";
   }
 }
 
-function addStop() {
-
+function stopChange(stopIndex) {
+  var stopInput = document.getElementById("route-mapping-stop-"+stopIndex);
+  if (stopInput.value === "" || stopInput.value === undefined) {
+    currentInput = stopIndex;
+    helpText.innerHTML = "Haz clic en un punto en el mapa para cambiar la parada";
+  }
 }
 
-function updateOriginAddress(e) {
+function removeStop(stopIndex, button) {
+  helpText.innerHTML = "Haz clic en el mapa para agregar un punto a la ruta";
+  let stops = 0;
+  for (let i = 0; i < waypoints.length; i++) {
+    if (waypoints[i].stopover) {
+      if (stops === stopIndex) {
+        waypoints.splice(i, 1);
+        displayRoute(origin, destination, waypoints);
+        return;
+      }
+      stops++;
+    }
+  }
+  button.parentNode.parentNode.removeChild(button.parentNode);
+}
+
+function addStop() {
+  var stopsContainer = document.getElementById("route-mapping-stops");
+  stopsContainer.innerHTML += getStopTemplate(routeStopsNames.stops.length);
+  document.getElementById("route-mapping-stop-"+ routeStopsNames.stops.length).click();
+}
+
+function getStopTemplate(id, value) {
+  var val = "";
+  if (value) {
+    val = 'value="'+ value +'"';
+  }
+  return '<div class="input-field">'+
+    '<i class="material-icons prefix white-text route-stop-icon">pin_drop</i>'+
+    '<input id="route-mapping-stop-'+ id +'" ' + val + ' class="route-stop icon-prefix" placeholder="Parada"' + 
+    'type="text" onkeyup="stopChange('+ id +')" onClick="this.select(); stopChange('+ id +');">'+
+    '<button onclick="removeStop('+ id +', this)" style="margin-left: 1px;" class="btn-floating tiny transparent waves-effect waves-light"><i class="material-icons white-text" style="">close</i></button>' +
+  '</div>';
+}
+
+function updateStopAddress(e, currentInput) {
   if (e.placeId) {
     placesService.getDetails({
       placeId: e.placeId
     }, function(place, status) {
       if (status === google.maps.places.PlacesServiceStatus.OK) {
-        routeStopsNames.origin = place.name;
+        if (currentInput === "origin") {
+          routeStopsNames.origin = place.name;
+        }
+        else if (currentInput === "destination") {
+          routeStopsNames.destination = place.name;
+        }
+        else {
+          routeStopsNames.stops[currentInput] = place.name;
+        }
         updateInputsAddresses();
       }
     });
@@ -113,7 +192,15 @@ function updateOriginAddress(e) {
   else {
     geocodeLatLng(e.latLng, geocoder, map, function(pointInfo){
       if (pointInfo !== null) {
-        routeStopsNames.origin = pointInfo.formatted_address;
+        if (currentInput === "origin") {
+          routeStopsNames.origin = pointInfo.formatted_address;
+        }
+        else if (currentInput === "destination") {
+          routeStopsNames.destination = pointInfo.formatted_address;
+        }
+        else {
+          routeStopsNames.stops[currentInput] = pointInfo.formatted_address;
+        }
         updateInputsAddresses();
       }
     });
@@ -126,12 +213,7 @@ function updateInputsAddresses() {
   var stopsContainer = document.getElementById("route-mapping-stops");
   stopsContainer.innerHTML = "";
   for (var i = 0; i < routeStopsNames.stops.length; i++) {
-    stopsContainer.innerHTML += 
-    '<div class="input-field">'+
-      '<i class="material-icons prefix white-text">place</i>'+
-      '<input id="route-mapping-stop-'+ i +'" value="'+ routeStopsNames.stops[i] +'" class="icon-prefix" placeholder="Parada" type="text">'+
-    '</div>'
-    ;
+    stopsContainer.innerHTML += getStopTemplate(i, routeStopsNames.stops[i]);
   }
 }
 
@@ -175,7 +257,6 @@ function geocodeLatLng(latLng, geocoder, map, callback) {
 }
 
 function updateStopsPoints(result) {
-  console.log(result);
   origin = result.request.origin;
   destination = result.request.destination;
   waypoints = result.request.waypoints;
