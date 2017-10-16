@@ -35,17 +35,27 @@
 }
 
 #route-mapping .route-points {
+  margin-top: 10px;
   margin-bottom: 10px;
 }
 
 #route-mapping .input-field {
-  margin-top: 0px;
+  margin-top: 5px;
 }
 
 #route-mapping .input-field input[type=text] {
   border-bottom: 1px solid white;
   color: white;
   margin-bottom: 0px;
+}
+
+#route-mapping .input-field label {
+  color: white;
+}
+
+#route-mapping .input-field label.active {
+  margin-left: 2.5rem;
+  top: 10px;
 }
 
 #route-mapping .input-field input[type=text]:focus {
@@ -91,6 +101,10 @@
   width: 100%;
 }
 
+.route-orig-dest {
+  width: calc(100% - 2.5rem - 45px) !important;
+}
+
 .route-stop {
   width: calc(100% - 2.5rem - 45px) !important;
 }
@@ -99,6 +113,10 @@
   font-size: 20px !important;
   margin-left: 4px !important;
   margin-top: 12px !important;
+}
+
+.i-tag {
+  transform: rotateZ(-45deg);
 }
 
 #map-help {
@@ -111,4 +129,20 @@
   top: 5px;
   font-weight: bold;
   transform: translateX(-50%);
+}
+
+#modal-tags {
+  width: 350px;
+  height: 200px;
+}
+
+.route-input-modal input{
+  border-bottom: 1px solid black !important;
+  color: black !important;
+  margin-bottom: 0px !important;
+}
+
+.route-input-modal input[type=text]:focus {
+  border-bottom: 1px solid black !important;
+  box-shadow: 0 1px 0 0 black !important;
 }

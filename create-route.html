@@ -31,12 +31,16 @@
       <div class="route-points col s12">
         <div class="input-field">
           <i class="material-icons prefix white-text">radio_button_checked</i>
-          <input id="route-mapping-origin" class="icon-prefix" placeholder="Origen" type="text" onkeyup="originChange()" onClick="this.select(); originChange();">
+          <input id="route-mapping-origin" class="route-orig-dest icon-prefix" type="text" onkeyup="originChange()" onclick="this.select(); originChange();">
+          <label for="route-mapping-origin">A. Origen</label>
+          <a href="#modal-tags" onclick="addTagToOrigin()" title="Agregar etiqueta al Origen" style="margin-left: 1px;" class="modal-trigger btn-floating tiny transparent waves-effect waves-light"><i class="i-tag material-icons white-text" style="">label</i></a>
         </div>
         <div id="route-mapping-stops"></div>
         <div class="input-field">
           <i class="material-icons prefix white-text">place</i>
-          <input id="route-mapping-destination" class="icon-prefix" placeholder="Destino" type="text" onkeyup="destinationChange()" onClick="this.select(); destinationChange();">
+          <input id="route-mapping-destination" class="route-orig-dest icon-prefix" type="text" onkeyup="destinationChange()" onclick="this.select(); destinationChange();">
+          <label for="route-mapping-destination">B. Destino</label>
+          <a href="#modal-tags" onclick="addTagToDestination()" title="Agregar etiqueta al Destino" style="margin-left: 1px;" class="modal-trigger btn-floating tiny transparent waves-effect waves-light"><i class="i-tag material-icons white-text" style="">label</i></a>
         </div>
       </div>
       <div class="route-mapping-buttons col s12">
@@ -46,6 +50,19 @@
     <div id="map-container" class="col s12 m8 l9 no-padding">
       <span id="map-help">Haz clic en un punto del mapa para agregar el origen</span>
       <div id="map" data-iscreate></div>
+    </div>
+    <div id="modal-tags" class="modal modal-fixed-footer">
+      <div class="modal-content">
+        <h4>Etiqueta</h4>
+        <div class="input-field route-input-modal">
+          <i class="material-icons prefix">label</i>
+          <input id="route-tag-input" class="icon-prefix" placeholder="Ingresa la etiqueta" type="text">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="addTag()" class="indigo white-text modal-action modal-close waves-effect waves-green btn-flat">Aceptar</button>
+        <a href="#!" class="red white-text modal-action modal-close waves-effect waves-green btn-flat">Cancelar</a>
+      </div>
     </div>
   </div>
   

@@ -18,6 +18,7 @@ var helpText;
 var originInput;
 var destinationInput;
 var currentInput = null;
+var currentTag = null;
 
 var isCreate = false;
 
@@ -38,7 +39,7 @@ function initMap() {
 
   directionsService = new google.maps.DirectionsService;
   directionsDisplay = new google.maps.DirectionsRenderer({
-    draggable: true,
+    draggable: isCreate,
     map: map,
     // markerOptions: {
     //   icon: {
@@ -95,13 +96,13 @@ function pointClicked(e, map) {
   marker = new google.maps.Marker({
     position: e.latLng,
     map: map,
-    icon: {
-      // url: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png',
-      size: new google.maps.Size(20, 32),
-      origin: new google.maps.Point(0, 0),
-      anchor: new google.maps.Point(0, 32),
-      labelOrigin: new google.maps.Point(20, 20),
-    },
+    // icon: {
+    //   url: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png',
+    //   size: new google.maps.Size(20, 32),
+    //   origin: new google.maps.Point(0, 0),
+    //   anchor: new google.maps.Point(0, 32),
+    //   labelOrigin: new google.maps.Point(20, 20),
+    // },
     label: {
       text: "A"
     }
@@ -147,12 +148,10 @@ function pointClicked(e, map) {
   }
   else if (destination === null) {
     destination = pointValue;
-    //updateStopAddress(e, routeStopsNames.destination);
   }
   else {
     waypoints.push({location: destination, stopover: false});
     destination = pointValue;
-    //updateStopAddress(e, routeStopsNames.destination);
   }
   helpText.innerHTML = "Haz clic en el mapa para agregar un punto a la ruta";
   if (origin !== null && destination !== null) {
@@ -202,6 +201,10 @@ function removeStop(stopIndex, button) {
 }
 
 function addStop() {
+  if (document.getElementById("route-mapping-stop-"+ routeStopsNames.stops.length) !== null) {
+    alert("Primera agregue la parada anterior");
+    return;
+  }
   var stopsContainer = document.getElementById("route-mapping-stops");
   stopsContainer.innerHTML += getStopTemplate(routeStopsNames.stops.length);
   document.getElementById("route-mapping-stop-"+ routeStopsNames.stops.length).click();
@@ -209,13 +212,17 @@ function addStop() {
 
 function getStopTemplate(id, value) {
   var val = "";
+  var active = "";
+  var letters = "ABCDEFGHIJKLMNOPQRSTVWXYZ"; 
   if (value) {
     val = 'value="'+ value +'"';
+    active = 'class="active"';
   }
   return '<div class="input-field">'+
     '<i class="material-icons prefix white-text route-stop-icon">pin_drop</i>'+
-    '<input id="route-mapping-stop-'+ id +'" ' + val + ' class="route-stop icon-prefix" placeholder="Parada"' + 
+    '<input id="route-mapping-stop-'+ id +'" ' + val + ' class="route-stop icon-prefix"' + 
     'type="text" onkeyup="stopChange('+ id +')" onClick="this.select(); stopChange('+ id +');">'+
+    '<label for="route-mapping-origin" '+ active +'>' + letters.charAt(id + 1) + '. Parada</label>' +
     '<button onclick="removeStop('+ id +', this)" style="margin-left: 1px;" class="btn-floating tiny transparent waves-effect waves-light"><i class="material-icons white-text" style="">close</i></button>' +
   '</div>';
 }
@@ -227,10 +234,10 @@ function updateStopAddress(e, currentInput) {
     }, function(place, status) {
       if (status === google.maps.places.PlacesServiceStatus.OK) {
         if (currentInput === "origin") {
-          routeStopsNames.origin = place.name;
+          setRouteOriginName(place.name);
         }
         else if (currentInput === "destination") {
-          routeStopsNames.destination = place.name;
+          setRouteDestinationName(place.name);
         }
         else {
           routeStopsNames.stops[currentInput] = place.name;
@@ -243,10 +250,10 @@ function updateStopAddress(e, currentInput) {
     geocodeLatLng(e.latLng, geocoder, map, function(pointInfo){
       if (pointInfo !== null) {
         if (currentInput === "origin") {
-          routeStopsNames.origin = pointInfo.formatted_address;
+          setRouteOriginName(pointInfo.formatted_address);
         }
         else if (currentInput === "destination") {
-          routeStopsNames.destination = pointInfo.formatted_address;
+          setRouteDestinationName(pointInfo.formatted_address);
         }
         else {
           routeStopsNames.stops[currentInput] = pointInfo.formatted_address;
@@ -258,8 +265,12 @@ function updateStopAddress(e, currentInput) {
 }
 
 function updateInputsAddresses() {
-  originInput.value = routeStopsNames.origin;
-  destinationInput.value = routeStopsNames.destination;
+  originInput.value = getRouteOriginName();
+  document.querySelector("label[for=" + originInput.id + "]").className = "active";
+  destinationInput.value = getRouteDestinationName();
+  var letters = "ABCDEFGHIJKLMNOPQRSTVWXYZ";
+  document.querySelector("label[for=" + destinationInput.id + "]").innerHTML = letters.charAt(routeStopsNames.stops.length + 1) + ". Destino"; 
+  document.querySelector("label[for=" + destinationInput.id + "]").className = "active";
   var stopsContainer = document.getElementById("route-mapping-stops");
   stopsContainer.innerHTML = "";
   for (var i = 0; i < routeStopsNames.stops.length; i++) {
@@ -310,49 +321,56 @@ function updateStopsPoints(result) {
   destination = result.request.destination;
   waypoints = result.request.waypoints;
 
-  for (var i = 0; i < markersMap.length; i++) {
-    markersMap[i].setMap(null);
-  }
-  markersMap = []; 
+  // for (var i = 0; i < markersMap.length; i++) {
+  //   markersMap[i].setMap(null);
+  // }
+  // markersMap = [];
 
   var route = result.routes[0];
-  routeStopsNames.origin = null;
-  routeStopsNames.destination = null;
   routeStopsNames.stops = [];
   var currentLocation;
+  var currentDest;
   for (var i = 0; i < route.legs.length; i++) {
-    if (routeStopsNames.origin === null) {
-      routeStopsNames.origin = route.legs[i].start_address;
-      makeMarker(route.legs[i].start_location, markerIcons.start, "Start");
+    if (i === 0) {
+      if (routeStopsNames.origin === null || !routeStopsNames.origin.isLabel) {
+        setRouteOriginName(route.legs[i].start_address);
+      }
+      // makeMarker(route.legs[i].start_location, markerIcons.start, "Start");
     }
-    if (routeStopsNames.destination === null) {
-      routeStopsNames.destination = route.legs[i].end_address;
+    if (i === 0) {
+      if (routeStopsNames.destination === null || !routeStopsNames.destination.isLabel) {
+        setRouteDestinationName(route.legs[i].end_address);
+      }
+      currentDest = route.legs[i].end_address;
     }
     else {
-      routeStopsNames.stops.push(routeStopsNames.destination);
-      routeStopsNames.destination = route.legs[i].end_address;
-      makeMarker(currentLocation, markerIcons.start, "Stop");
+      routeStopsNames.stops.push(currentDest);
+      if (routeStopsNames.destination === null || !routeStopsNames.destination.isLabel) {
+        setRouteDestinationName(route.legs[i].end_address);
+      }
+      currentDest = route.legs[i].end_address;
+      // makeMarker(currentLocation, markerIcons.start, "Stop");
     }
-    currentLocation = route.legs[i].end_location;
+    // currentLocation = route.legs[i].end_location;
   }
-  makeMarker(currentLocation, markerIcons.end, "End");
+  // makeMarker(currentLocation, markerIcons.end, "End");
   updateInputsAddresses();
 }
 
-function makeMarker( position, icon, title ) {
- //  var shape = {
- //    coords: [1, 1, 1, 20, 18, 20, 18, 1],
- //    type: 'poly'
- //  };
- // let newMarker = new google.maps.Marker({
- //  position: position,
- //  map: map,
- //  icon: icon,
- //  title: title,
- //  draggable: true,
- //  shape: shape
- // });
- // markersMap.push(newMarker);
+function makeMarker(position, icon, title) {
+  var shape = {
+    coords: [1, 1, 1, 20, 18, 20, 18, 1],
+    type: 'poly'
+  };
+ let newMarker = new google.maps.Marker({
+  position: position,
+  map: map,
+  icon: icon,
+  title: title,
+  draggable: true,
+  shape: shape
+ });
+ markersMap.push(newMarker);
 }
 
 function computeTotalDistance(result) {
@@ -366,13 +384,76 @@ function computeTotalDistance(result) {
   document.getElementById('route-mapping-total').innerHTML = total + ' km';
 }
 
+function setRouteOriginName(value, isLabel) {
+  isLabel = typeof isLabel !== 'undefined' ? isLabel : false;
+  routeStopsNames.origin = {
+    value: value,
+    isLabel: isLabel
+  };
+}
+
+function getRouteOriginName() {
+  if (routeStopsNames.origin === null) 
+    return null;
+  return routeStopsNames.origin.value;
+}
+
+function setRouteDestinationName(value, isLabel) {
+  isLabel = typeof isLabel !== 'undefined' ? isLabel : false;
+  routeStopsNames.destination = {
+    value: value,
+    isLabel: isLabel
+  };
+}
+
+function getRouteDestinationName() {
+  if (routeStopsNames.destination === null) 
+    return null;
+  return routeStopsNames.destination.value;
+}
+
 function getRouteToSave() {
   let routeData = {
     origin: origin,
     destination: destination,
-    waypoints: waypoints
+    waypoints: waypoints,
+    stopsNames: routeStopsNames
   }
   return JSON.stringify(routeData);
+}
+
+function addTagToOrigin() {
+  currentTag = "origin";
+  if (routeStopsNames.origin.isLabel) {
+    document.getElementById("route-tag-input").value = getRouteOriginName();
+  }
+  else {
+    document.getElementById("route-tag-input").value = "";
+  }
+}
+
+function addTagToDestination() {
+  currentTag = "destination";
+  if (routeStopsNames.destination.isLabel) {
+    document.getElementById("route-tag-input").value = getRouteDestinationName();
+  }
+  else {
+    document.getElementById("route-tag-input").value = "";
+  }
+}
+
+function addTag() {
+  var tag = document.getElementById("route-tag-input").value;
+  if (tag === undefined || tag === null) {
+    return;
+  }
+  if (currentTag === "origin") {
+    setRouteOriginName(tag, tag !== "");
+  }
+  else if (currentTag === "destination") {
+    setRouteDestinationName(tag, tag !== "");
+  }
+  updateStopsPoints(directionsDisplay.getDirections());
 }
 
 function showSavedRoute(routeData) {
@@ -385,4 +466,8 @@ function showSavedRoute(routeData) {
   }, 100);
 }
 
+$(document).ready(function(){
+  // the "href" attribute of the modal trigger must specify the modal ID that wants to be triggered
+  $('#modal-tags').modal();
+});
 
