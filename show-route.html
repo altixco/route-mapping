@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Route Mapping | Openbus</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <!-- Solo para presentación  -->
+  <style>
+  body {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 40px;
+  }
+  </style>
+
+  <link rel="stylesheet" href="route-mapping.css">
+</head>
+<body class="grey lighten-5">
+  <div id="route-mapping" class="row card"> 
+    <div id="map" class="col s12"></div>
+  </div>
+  
+  <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+  <!-- Google Maps API -->
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAiv_Fbe-yd0qA7TOJrD37JdBJ3BvPOEqE&libraries=places&callback=initMap">
+  </script>
+  <script src="route-mapping.js"></script>
+
+  <!-- Se carga la ruta guardada en el mapa -->
+  <script>
+    var routeData = '{"origin":{"location":{"lat":4.133663100844884,"lng":-73.63637924194336}},"destination":{"location":{"lat":4.142480614885716,"lng":-73.6347484588623}},"waypoints":[{"location":{"location":{"lat":4.133021045018572,"lng":-73.6257791519165}},"stopover":false},{"location":{"location":{"lat":4.1353752471727026,"lng":-73.62753868103027}},"stopover":true},{"location":{"location":{"lat":4.137130193319646,"lng":-73.63105773925781}},"stopover":false},{"location":{"location":{"lat":4.141624549865673,"lng":-73.62710952758789}},"stopover":true}]}';
+
+    showSavedRoute(routeData);
+  </script>
+</body>
+</html>

@@ -1,7 +1,9 @@
+var map;
 var directionsService;
 var directionsDisplay;
 var placesService;
 var geocoder;
+var markerIcons;
 
 var origin = null;
 var destination = null;
@@ -17,13 +19,18 @@ var originInput;
 var destinationInput;
 var currentInput = null;
 
+var isCreate = false;
+
 function initMap() {
-  var map = new google.maps.Map(document.getElementById('map'), {
+  var mapContainer = document.getElementById('map');
+  map = new google.maps.Map(mapContainer, {
     zoom: 14,
     center: {lat: 4.1374244, lng: -73.6310358},  // Villavicencio.
     draggableCursor: 'auto',
     draggingCursor: 'move'
   });
+
+  isCreate = mapContainer.hasAttribute("data-iscreate");
 
   originInput = document.getElementById("route-mapping-origin");
   destinationInput = document.getElementById("route-mapping-destination");
@@ -33,19 +40,52 @@ function initMap() {
   directionsDisplay = new google.maps.DirectionsRenderer({
     draggable: true,
     map: map,
+    // markerOptions: {
+    //   icon: {
+        // url: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png',
+        // size: new google.maps.Size(20, 32),
+        // origin: new google.maps.Point(0, 0),
+        // anchor: new google.maps.Point(0, 32)
+    //   }
+    // },
+    // suppressMarkers: true
   });
   
   placesService = new google.maps.places.PlacesService(map);
   geocoder = new google.maps.Geocoder;
 
-  directionsDisplay.addListener('directions_changed', function() {
-    computeTotalDistance(directionsDisplay.getDirections());
-    updateStopsPoints(directionsDisplay.getDirections());
-  });
+  if (isCreate) {
+    directionsDisplay.addListener('directions_changed', function() {
+      computeTotalDistance(directionsDisplay.getDirections());
+      updateStopsPoints(directionsDisplay.getDirections());
+    });
 
-  map.addListener('click', function(e) {
-    pointClicked(e, map);
-  });
+    map.addListener('click', function(e) {
+      pointClicked(e, map);
+    });
+  }
+
+  markerIcons = {
+    start: {
+      url: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png',
+      // This marker is 20 pixels wide by 32 pixels high.
+      size: new google.maps.Size(20, 32),
+      // The origin for this image is (0, 0).
+      origin: new google.maps.Point(0, 0),
+      // The anchor for this image is the base of the flagpole at (0, 32).
+      anchor: new google.maps.Point(0, 32)
+    },
+    end: {
+     // URL
+     url: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png',
+     // This marker is 20 pixels wide by 32 pixels high.
+     size: new google.maps.Size(20, 32),
+     // The origin for this image is (0, 0).
+     origin: new google.maps.Point(0, 0),
+     // The anchor for this image is the base of the flagpole at (0, 32).
+     anchor: new google.maps.Point(0, 32)
+    }
+  };
 }
 
 var marker;
@@ -54,7 +94,17 @@ function pointClicked(e, map) {
   let pointValue = e.placeId ? {placeId: e.placeId} : e.latLng;
   marker = new google.maps.Marker({
     position: e.latLng,
-    map: map
+    map: map,
+    icon: {
+      // url: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png',
+      size: new google.maps.Size(20, 32),
+      origin: new google.maps.Point(0, 0),
+      anchor: new google.maps.Point(0, 32),
+      labelOrigin: new google.maps.Point(20, 20),
+    },
+    label: {
+      text: "A"
+    }
   });
   markers.push(marker);
   // map.panTo(e.latLng);
@@ -217,8 +267,6 @@ function updateInputsAddresses() {
   }
 }
 
-// directionsDisplay.directions.request.waypoints
-
 function displayRoute(origin, destination, waypoints) {
   directionsService.route({
     origin: origin,
@@ -256,18 +304,26 @@ function geocodeLatLng(latLng, geocoder, map, callback) {
   });
 }
 
+var markersMap = [];
 function updateStopsPoints(result) {
   origin = result.request.origin;
   destination = result.request.destination;
   waypoints = result.request.waypoints;
 
+  for (var i = 0; i < markersMap.length; i++) {
+    markersMap[i].setMap(null);
+  }
+  markersMap = []; 
+
   var route = result.routes[0];
   routeStopsNames.origin = null;
   routeStopsNames.destination = null;
   routeStopsNames.stops = [];
+  var currentLocation;
   for (var i = 0; i < route.legs.length; i++) {
     if (routeStopsNames.origin === null) {
       routeStopsNames.origin = route.legs[i].start_address;
+      makeMarker(route.legs[i].start_location, markerIcons.start, "Start");
     }
     if (routeStopsNames.destination === null) {
       routeStopsNames.destination = route.legs[i].end_address;
@@ -275,9 +331,28 @@ function updateStopsPoints(result) {
     else {
       routeStopsNames.stops.push(routeStopsNames.destination);
       routeStopsNames.destination = route.legs[i].end_address;
+      makeMarker(currentLocation, markerIcons.start, "Stop");
     }
+    currentLocation = route.legs[i].end_location;
   }
+  makeMarker(currentLocation, markerIcons.end, "End");
   updateInputsAddresses();
+}
+
+function makeMarker( position, icon, title ) {
+ //  var shape = {
+ //    coords: [1, 1, 1, 20, 18, 20, 18, 1],
+ //    type: 'poly'
+ //  };
+ // let newMarker = new google.maps.Marker({
+ //  position: position,
+ //  map: map,
+ //  icon: icon,
+ //  title: title,
+ //  draggable: true,
+ //  shape: shape
+ // });
+ // markersMap.push(newMarker);
 }
 
 function computeTotalDistance(result) {
@@ -290,3 +365,24 @@ function computeTotalDistance(result) {
   total = Math.round(total * 100) / 100;
   document.getElementById('route-mapping-total').innerHTML = total + ' km';
 }
+
+function getRouteToSave() {
+  let routeData = {
+    origin: origin,
+    destination: destination,
+    waypoints: waypoints
+  }
+  return JSON.stringify(routeData);
+}
+
+function showSavedRoute(routeData) {
+  routeData = JSON.parse(routeData);
+  let waitInterval = setInterval(function(){
+    if (directionsService !== undefined) {
+      displayRoute(routeData.origin, routeData.destination, routeData.waypoints);
+      window.clearInterval(waitInterval);
+    }
+  }, 100);
+}
+
+

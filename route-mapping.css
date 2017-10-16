@@ -2,9 +2,14 @@
   overflow-y: scroll;
 }
 
+#route-mapping > #map-container {
+  position: relative;
+}
+
 #route-mapping #map {
   height: 100%;
   width: 100%;
+  min-height: 300px;
 }
 
 @media (max-width: 600px) {
@@ -105,4 +110,5 @@
   border-radius: 3px;
   top: 5px;
   font-weight: bold;
+  transform: translateX(-50%);
 }
