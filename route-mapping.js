@@ -55,12 +55,14 @@ function initMap() {
   placesService = new google.maps.places.PlacesService(map);
   geocoder = new google.maps.Geocoder;
 
+  directionsDisplay.addListener('directions_changed', function() {
+    computeTotalDistance(directionsDisplay.getDirections());
+  });
+
   if (isCreate) {
     directionsDisplay.addListener('directions_changed', function() {
-      computeTotalDistance(directionsDisplay.getDirections());
       updateStopsPoints(directionsDisplay.getDirections());
     });
-
     map.addListener('click', function(e) {
       pointClicked(e, map);
     });
@@ -440,16 +442,6 @@ function getRouteDestinationName() {
   return routeStopsNames.destination.value;
 }
 
-function getRouteToSave() {
-  let routeData = {
-    origin: origin,
-    destination: destination,
-    waypoints: waypoints,
-    stopsNames: routeStopsNames
-  }
-  return JSON.stringify(routeData);
-}
-
 function addTagToOrigin() {
   currentTag = "origin";
   if (routeStopsNames.origin.isLabel) {
@@ -497,14 +489,34 @@ function addTag() {
   updateStopsPoints(directionsDisplay.getDirections());
 }
 
+function getRouteToSave() {
+  let routeData = {
+    origin: origin,
+    destination: destination,
+    waypoints: waypoints,
+    stopsNames: routeStopsNames
+  }
+  return JSON.stringify(routeData);
+}
+
 function showSavedRoute(routeData) {
   routeData = JSON.parse(routeData);
   let waitInterval = setInterval(function(){
     if (directionsService !== undefined) {
       displayRoute(routeData.origin, routeData.destination, routeData.waypoints);
+      showSavedRoutePoints(routeData.stopsNames);
       window.clearInterval(waitInterval);
     }
   }, 100);
+}
+
+function showSavedRoutePoints(stopsNames) {
+  var html = '<h6><span>A. </span>'+stopsNames.origin.value+'</h6>';
+  for (var i = 0; i < stopsNames.stops.length; i++) {
+    html += '<h6><span>'+letters.charAt(i+1)+'. '+'</span>'+stopsNames.stops[i].value+'</h6>';
+  }
+  html += '<h6><span>'+letters.charAt(stopsNames.stops.length + 1)+'. '+'</span>'+stopsNames.destination.value+'</h6>';
+  document.querySelector(".saved-route-points").innerHTML = html;
 }
 
 $(document).ready(function(){
