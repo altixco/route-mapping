@@ -106,7 +106,7 @@
 }
 
 .route-stop {
-  width: calc(100% - 2.5rem - 45px) !important;
+  width: calc(100% - 2.5rem - 85px) !important;
 }
 
 .route-stop-icon {
